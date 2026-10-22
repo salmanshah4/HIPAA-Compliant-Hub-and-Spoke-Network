@@ -77,7 +77,7 @@ variable "spoke2_data_subnet" {
   type    = string
   default = "10.2.2.0/24"
 }
-   variable "subscription_id" {
-     description = "Azure subscription ID to deploy into."
-     type        = string
-   }
+variable "subscription_id" {
+  description = "Azure subscription ID to deploy into."
+  type        = string
+}
