@@ -54,7 +54,7 @@ This project builds that network foundation end-to-end in Terraform:
 ```mermaid
 flowchart TB
     subgraph SUB["Azure Subscription — Defender for Cloud + HIPAA HITRUST policy initiative"]
-        subgraph HUBRG["rg-hipaa-hub-&lt;yourname&gt;"]
+        subgraph HUBRG["rg-hipaa-hub-syed"]
             subgraph HUB["vnet-hub · 10.0.0.0/16"]
                 FW["Azure Firewall (Standard)<br/>AzureFirewallSubnet 10.0.1.0/26"]
                 BAS["Azure Bastion (Standard)<br/>AzureBastionSubnet 10.0.2.0/27"]
@@ -64,15 +64,15 @@ flowchart TB
             KV["Key Vault<br/>RBAC · purge protection · default-deny ACLs"]
             LAW["Log Analytics<br/>90-day retention"]
             ST["Audit Storage<br/>TLS 1.2 · HTTPS-only · 90-day soft delete"]
-            NW["Network Watcher<br/>nw-hipaa-&lt;yourname&gt;"]
+            NW["Network Watcher<br/>nw-hipaa-syed"]
         end
-        subgraph S1RG["rg-hipaa-spoke1-&lt;yourname&gt; — Clinical ePHI"]
+        subgraph S1RG["rg-hipaa-spoke1-syed — Clinical ePHI"]
             subgraph S1["vnet-spoke1 · 10.1.0.0/16"]
                 S1A["app-subnet 10.1.1.0/24 + NSG"]
                 S1D["data-subnet 10.1.2.0/24 + NSG"]
             end
         end
-        subgraph S2RG["rg-hipaa-spoke2-&lt;yourname&gt; — Analytics (de-identified)"]
+        subgraph S2RG["rg-hipaa-spoke2-syed — Analytics (de-identified)"]
             subgraph S2["vnet-spoke2 · 10.2.0.0/16"]
                 S2A["analytics-subnet 10.2.1.0/24 + NSG"]
                 S2D["data-subnet 10.2.2.0/24 + NSG"]
@@ -118,25 +118,25 @@ flowchart TB
 
 ## 🏷️ Naming Conventions
 
-All names use a `<yourname>` suffix from `terraform.tfvars`.
+All names use the `yourname` suffix from `terraform.tfvars` — `syed` in my deployment.
 
 | Resource | Name |
 |---|---|
-| Resource groups | `rg-hipaa-hub-<yourname>`, `rg-hipaa-spoke1-<yourname>`, `rg-hipaa-spoke2-<yourname>` |
-| VNets | `vnet-hub-<yourname>`, `vnet-spoke1-<yourname>`, `vnet-spoke2-<yourname>` |
-| Azure Firewall / Public IP | `fw-hipaa-<yourname>` / `pip-firewall-<yourname>` |
-| Firewall Policy / Rule Collection Group | `fwpol-hipaa-<yourname>` / `rcg-hipaa` |
-| Azure Bastion / Public IP | `bastion-hipaa-<yourname>` / `pip-bastion-<yourname>` |
-| Key Vault | `kv-hipaa-<yourname>` |
-| Log Analytics Workspace | `law-hipaa-<yourname>` |
-| Audit Storage Account | `sthipaaaudit<yourname>` |
-| NSGs | `nsg-spoke1-app-`, `nsg-spoke1-data-`, `nsg-spoke2-app-`, `nsg-spoke2-data-<yourname>` |
-| Route Tables | `rt-spoke1-<yourname>`, `rt-spoke2-<yourname>` |
-| Network Watcher | `nw-hipaa-<yourname>` |
-| VNet Flow Logs | `flowlog-spoke1-<yourname>`, `flowlog-spoke2-<yourname>` |
+| Resource groups | `rg-hipaa-hub-syed`, `rg-hipaa-spoke1-syed`, `rg-hipaa-spoke2-syed` |
+| VNets | `vnet-hub-syed`, `vnet-spoke1-syed`, `vnet-spoke2-syed` |
+| Azure Firewall / Public IP | `fw-hipaa-syed` / `pip-firewall-syed` |
+| Firewall Policy / Rule Collection Group | `fwpol-hipaa-syed` / `rcg-hipaa` |
+| Azure Bastion / Public IP | `bastion-hipaa-syed` / `pip-bastion-syed` |
+| Key Vault | `kv-hipaa-syed` |
+| Log Analytics Workspace | `law-hipaa-syed` |
+| Audit Storage Account | `sthipaaauditsyed` |
+| NSGs | `nsg-spoke1-app-syed`, `nsg-spoke1-data-syed`, `nsg-spoke2-app-syed`, `nsg-spoke2-data-syed` |
+| Route Tables | `rt-spoke1-syed`, `rt-spoke2-syed` |
+| Network Watcher | `nw-hipaa-syed` |
+| VNet Flow Logs | `flowlog-spoke1-syed`, `flowlog-spoke2-syed` |
 | Policy Assignment | `hipaa-hitech` (HIPAA HITRUST initiative) |
 
-> Keep `<yourname>` short and lowercase-alphanumeric: `kv-hipaa-<yourname>` must fit Key Vault's 24-character limit and `sthipaaaudit<yourname>` must fit storage's 24-character, lowercase-only limit.
+> Keep your `yourname` value short and lowercase-alphanumeric: `kv-hipaa-<name>` must fit Key Vault's 24-character limit and `sthipaaaudit<name>` must fit storage's 24-character, lowercase-only limit.
 
 ## 🔐 Security Design
 
@@ -222,19 +222,19 @@ terraform output firewall_private_ip
 **Spoke route table sends `0.0.0.0/0` to the firewall:**
 
 ```powershell
-az network route-table show --name rt-spoke1-<yourname> --resource-group rg-hipaa-spoke1-<yourname> --query "routes[].{Name:name, Prefix:addressPrefix, NextHop:nextHopIpAddress}" --output table
+az network route-table show --name rt-spoke1-syed --resource-group rg-hipaa-spoke1-syed --query "routes[].{Name:name, Prefix:addressPrefix, NextHop:nextHopIpAddress}" --output table
 ```
 
 **Both hub peerings are Connected:**
 
 ```powershell
-az network vnet peering list --resource-group rg-hipaa-hub-<yourname> --vnet-name vnet-hub-<yourname> --query "[].{Name:name, State:peeringState}" --output table
+az network vnet peering list --resource-group rg-hipaa-hub-syed --vnet-name vnet-hub-syed --query "[].{Name:name, State:peeringState}" --output table
 ```
 
 **NSG rules block internet and cross-spoke inbound:**
 
 ```powershell
-az network nsg show --name nsg-spoke1-app-<yourname> --resource-group rg-hipaa-spoke1-<yourname> --query "securityRules[].{Name:name, Priority:priority, Access:access, Source:sourceAddressPrefix}" --output table
+az network nsg show --name nsg-spoke1-app-syed --resource-group rg-hipaa-spoke1-syed --query "securityRules[].{Name:name, Priority:priority, Access:access, Source:sourceAddressPrefix}" --output table
 ```
 
 Expected: `deny-spoke2-inbound` at 3000 and `deny-internet-inbound` at 4000, both `Deny`.
@@ -242,13 +242,13 @@ Expected: `deny-spoke2-inbound` at 3000 and `deny-internet-inbound` at 4000, bot
 **Firewall policy is attached to the firewall:**
 
 ```powershell
-az network firewall show --name fw-hipaa-<yourname> --resource-group rg-hipaa-hub-<yourname> --query "firewallPolicy.id" --output tsv
+az network firewall show --name fw-hipaa-syed --resource-group rg-hipaa-hub-syed --query "firewallPolicy.id" --output tsv
 ```
 
 **Key Vault public access defaults to Deny:**
 
 ```powershell
-az keyvault show --name kv-hipaa-<yourname> --query "properties.networkAcls.defaultAction" --output tsv
+az keyvault show --name kv-hipaa-syed --query "properties.networkAcls.defaultAction" --output tsv
 ```
 
 **VNet flow logs are enabled:**
@@ -259,7 +259,7 @@ az network watcher flow-log list --location eastus2 --query "[].{Name:name, Enab
 
 ### Step 4 — Query firewall logs in Log Analytics
 
-Portal → `law-hipaa-<yourname>` → **Logs**:
+Portal → `law-hipaa-syed` → **Logs**:
 
 ```kusto
 AzureDiagnostics
@@ -355,15 +355,15 @@ Terraform configuration reviewed and stored in GitHub for version control and re
 
 ## ✅ Verification Checklist
 
-- [x] Three resource groups: `rg-hipaa-hub-*`, `rg-hipaa-spoke1-*`, `rg-hipaa-spoke2-*`
+- [x] Three resource groups: `rg-hipaa-hub-syed`, `rg-hipaa-spoke1-syed`, `rg-hipaa-spoke2-syed`
 - [x] Hub VNet has four subnets: `AzureFirewallSubnet`, `AzureBastionSubnet`, `GatewaySubnet`, `shared-services-subnet`
-- [x] Azure Firewall provisioned with `fwpol-hipaa-*` attached
+- [x] Azure Firewall provisioned with `fwpol-hipaa-syed` attached
 - [x] Hub → Spoke 1 and Hub → Spoke 2 peerings **Connected**; no Spoke 1 ↔ Spoke 2 peering
 - [x] Both spoke route tables send `0.0.0.0/0` to the firewall private IP
 - [x] All four spoke subnets have an NSG attached
 - [x] Key Vault network ACL default action is **Deny**
 - [x] VNet flow logs enabled on Spoke 1 and Spoke 2 with 90-day retention
-- [x] Firewall diagnostics arriving in `law-hipaa-*`
+- [x] Firewall diagnostics arriving in `law-hipaa-syed`
 - [x] Defender for Cloud plans **On** for Servers, Storage, and Key Vault
 - [x] HIPAA HITRUST initiative assigned and evaluating
 
